@@ -780,9 +780,10 @@ const syPack=()=>{const c=Object.assign({},D);delete c.lang;delete c.u;return JS
 function syNorm(){D.m=D.m||{};D.w=D.w||{};D.f=D.f||{};D.n=D.n||{};D.x=D.x||[];D.h=D.h||{};D.l=D.l||{};D.r=D.r||{};D.t=D.t||{};D.g=D.g||{};D.ns=D.ns||{};D.pv=D.pv||{};D.pd=D.pd||{};D.pl=D.pl||{};D.hv=D.hv||{};D.pu=D.pu||{};D.sp=D.sp||{};D.si=D.si||{};D.cm=D.cm||{};D.u=D.u||null}
 async function syGet(){const r=await fetch(syUrl(),{cache:'no-store'});if(!r.ok)throw 0;return r.json()}
 async function syPut(){const ts=D.ts||Date.now();D.ts=ts;localStorage.tg=JSON.stringify(D);const r=await fetch(syUrl(),{method:'PUT',body:JSON.stringify({ts:ts,d:syPack()})});if(!r.ok)throw 0}
-function syAdopt(doc){const keep=LG,c=JSON.parse(doc.d);Object.keys(D).forEach(k=>delete D[k]);Object.assign(D,c);D.lang=keep;D.ts=doc.ts;syNorm();localStorage.tg=JSON.stringify(D)}
+function mergeM(a,b){const o={};let ch=0;new Set(Object.keys(a||{}).concat(Object.keys(b||{}))).forEach(id=>{const m=new Map();(a&&a[id]||[]).concat(b&&b[id]||[]).forEach(z=>{if(z&&z.d&&z.h!=null)m.set(z.d+'|'+z.h,z)});o[id]=[...m.values()].sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0)});return o}
+function syAdopt(doc){const keep=LG,c=JSON.parse(doc.d),lm=D.m||{};Object.keys(D).forEach(k=>delete D[k]);Object.assign(D,c);D.lang=keep;D.ts=doc.ts;syNorm();const mm=mergeM(D.m,lm);if(JSON.stringify(mm)!=JSON.stringify(mergeM(D.m,{}))){D.m=mm;D.ts=Math.max(doc.ts,Date.now());setTimeout(syKick,300)}localStorage.tg=JSON.stringify(D)}
 const syTime=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
-async function sync(){if(!SYC)return;if(syBusy){syAgain=1;return}syBusy=1;let ch=0;try{const r=await syGet();if(r&&r.ts>(D.ts||0)){syAdopt(r);ch=1}else if(!r||(D.ts||0)>r.ts)await syPut();syMsg='Synced at '+syTime()}catch(e){syMsg='Could not sync. Will retry.'}syBusy=0;if(ch||location.hash=='#/sync')route();if(syAgain){syAgain=0;sync()}phSync()}
+async function sync(){if(!SYC)return;if(syBusy){syAgain=1;return}syBusy=1;let ch=0;try{const r=await syGet();if(r&&r.ts>(D.ts||0)){syAdopt(r);ch=1}else if(!r||(D.ts||0)>r.ts){if(r){try{D.m=mergeM(JSON.parse(r.d).m,D.m)}catch(e){}}await syPut()}syMsg='Synced at '+syTime()}catch(e){syMsg='Could not sync. Will retry.'}syBusy=0;if(ch||location.hash=='#/sync')route();if(syAgain){syAgain=0;sync()}phSync()}
 
 const phU=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
 let phBusy=0;
